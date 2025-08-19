@@ -301,15 +301,39 @@
 
     let typingIndicator;
 
+ function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function renderMarkdown(text) {
+  // Handle code blocks first
+  text = text.replace(/```([\s\S]*?)```/g, (match, p1) => {
+    return `<pre><code>${escapeHtml(p1)}</code></pre>`;
+  });
+
+  // Bold (**text**)
+  text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // Italics (*text*)
+  text = text.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  // Inline code (`code`)
+  text = text.replace(/`([^`]+)`/g, (match, p1) => `<code>${escapeHtml(p1)}</code>`);
+  // Line breaks
+  return text.replace(/\n/g, "<br>");
+}
+
+
     function appendMessage(role, text) {
       const row = document.createElement("div");
       row.className = "message-row";
 
       const msg = document.createElement("div");
       msg.className = "message " + role;
-      msg.innerHTML = text
-        .replace(/\n/g, "<br>")
-        .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+      msg.innerHTML = renderMarkdown(text);
 
       row.appendChild(msg);
       chatWindow.appendChild(row);
